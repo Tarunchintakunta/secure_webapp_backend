@@ -11,6 +11,9 @@ class Database:
         if settings.DB_USER and settings.DB_PASS:
              db_url = f"mongodb://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:27017"
         
+        # SECURITY NOTE: NoSQL Injection
+        # Insecure: Constructing queries with string concatenation from user input
+        # Secure: Using Motor/PyMongo which handles parameterization
         self.client = AsyncIOMotorClient(db_url)
         print("Connected to MongoDB")
 

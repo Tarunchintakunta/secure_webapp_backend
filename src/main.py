@@ -22,4 +22,6 @@ app.include_router(customer_router)
 
 @app.get("/")
 async def root():
+    # SECURITY NOTE: Information Leakage
+    # Insecure: Returning stack traces or sensitive server info in production
     return {"message": "Secure Inventory System API"}

@@ -57,6 +57,8 @@ async def cancel_sale(id: str, employee_id: str, role: str, db=Depends(get_datab
         raise HTTPException(status_code=400, detail="Sale already cancelled")
 
     # Only admin or the employee who made the sale can cancel
+    # SECURITY NOTE: IDOR (Insecure Direct Object Reference)
+    # Insecure: Allowing any user to cancel any sale by ID
     if role != "admin" and sale["employee_id"] != employee_id:
         raise HTTPException(status_code=403, detail="Not authorized to cancel this sale")
 
