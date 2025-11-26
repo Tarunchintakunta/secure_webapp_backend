@@ -9,10 +9,12 @@ async def lifespan(app: FastAPI):
     await db.close_database_connection()
 
 from src.routes.auth_routes import router as auth_router
+from src.routes.product_routes import router as product_router
 
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router)
+app.include_router(product_router)
 
 @app.get("/")
 async def root():
