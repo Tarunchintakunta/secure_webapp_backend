@@ -35,8 +35,10 @@ class UserInDB(UserBase):
         json_encoders = {ObjectId: str}
 
 class UserResponse(UserBase):
-    id: str
+    id: str = Field(alias="_id")
     name: str
 
     class Config:
         from_attributes = True
+        populate_by_name = True
+        json_encoders = {ObjectId: str}

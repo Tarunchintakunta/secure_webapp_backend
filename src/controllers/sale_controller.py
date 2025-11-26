@@ -26,23 +26,30 @@ async def create_sale(sale: SaleCreate, employee_id: str, db=Depends(get_databas
             {"$inc": {"stock_quantity": -item.quantity}}
         )
 
-    sale_in_db = SaleInDB(
-        items=sale.items,
-        total_amount=total_amount,
-        employee_id=employee_id,
-        customer_name=sale.customer_name
-    )
+    sale_doc = {
+        "items": [item.model_dump() for item in sale.items],
+        "total_amount": total_amount,
+        "employee_id": employee_id,
+        "customer_name": sale.customer_name,
+        "created_at": datetime.utcnow(),
+        "status": "completed"
+    }
     
-    new_sale = await db["sales"].insert_one(sale_in_db.dict(by_alias=True))
+    new_sale = await db["sales"].insert_one(sale_doc)
     created_sale = await db["sales"].find_one({"_id": new_sale.inserted_id})
+    created_sale["id"] = str(created_sale["_id"])
     return SaleResponse(**created_sale)
 
 async def get_sales(db=Depends(get_database)):
     sales = await db["sales"].find().sort("created_at", -1).to_list(1000)
+    for s in sales:
+        s["id"] = str(s["_id"])
     return [SaleResponse(**s) for s in sales]
 
 async def get_my_sales(employee_id: str, db=Depends(get_database)):
     sales = await db["sales"].find({"employee_id": employee_id}).sort("created_at", -1).to_list(1000)
+    for s in sales:
+        s["id"] = str(s["_id"])
     return [SaleResponse(**s) for s in sales]
 
 async def cancel_sale(id: str, employee_id: str, role: str, db=Depends(get_database)):

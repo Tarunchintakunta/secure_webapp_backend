@@ -11,13 +11,20 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed_password = get_password_hash(user.password)
-    user_in_db = UserInDB(
-        **user.dict(),
-        hashed_password=hashed_password
-    )
     
-    new_user = await db["users"].insert_one(user_in_db.dict(by_alias=True))
+    # Create user document for database
+    user_doc = {
+        "email": user.email,
+        "role": user.role,
+        "name": user.name,
+        "hashed_password": hashed_password
+    }
+    
+    new_user = await db["users"].insert_one(user_doc)
     created_user = await db["users"].find_one({"_id": new_user.inserted_id})
+    
+    # Convert ObjectId to string for response
+    created_user["id"] = str(created_user["_id"])
     return UserResponse(**created_user)
 
 async def login_user(response: Response, form_data, db=Depends(get_database)):
@@ -43,8 +50,9 @@ async def login_user(response: Response, form_data, db=Depends(get_database)):
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        samesite="strict",
-        secure=False # Set to True in production with HTTPS
+        samesite="lax", # Relaxed for localhost
+        secure=False, # Set to True in production with HTTPS
+        max_age=1800
     )
     return {"access_token": access_token, "token_type": "bearer"}
 

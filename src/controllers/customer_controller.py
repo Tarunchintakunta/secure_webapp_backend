@@ -4,13 +4,16 @@ from src.config.database import get_database
 from bson import ObjectId
 
 async def create_customer(customer: CustomerCreate, db=Depends(get_database)):
-    customer_in_db = CustomerInDB(**customer.dict())
-    new_customer = await db["customers"].insert_one(customer_in_db.dict(by_alias=True))
+    customer_dict = customer.model_dump()
+    new_customer = await db["customers"].insert_one(customer_dict)
     created_customer = await db["customers"].find_one({"_id": new_customer.inserted_id})
+    created_customer["id"] = str(created_customer["_id"])
     return CustomerResponse(**created_customer)
 
 async def get_customers(db=Depends(get_database)):
     customers = await db["customers"].find().to_list(1000)
+    for c in customers:
+        c["id"] = str(c["_id"])
     return [CustomerResponse(**c) for c in customers]
 
 async def get_sales_analytics(db=Depends(get_database)):

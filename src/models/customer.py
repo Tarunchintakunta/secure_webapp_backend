@@ -26,7 +26,9 @@ class CustomerInDB(CustomerBase):
         json_encoders = {ObjectId: str}
 
 class CustomerResponse(CustomerBase):
-    id: str
+    id: str = Field(alias="_id")
 
     class Config:
         from_attributes = True
+        populate_by_name = True
+        json_encoders = {ObjectId: str}

@@ -24,8 +24,14 @@ async def get_current_user(request: Request, db=Depends(get_database)):
     user = await db["users"].find_one({"email": email})
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
-        
-    return UserResponse(**user)
+    
+    # Convert ObjectId to string and create response
+    return UserResponse(
+        email=user["email"],
+        role=user["role"],
+        name=user["name"],
+        id=str(user["_id"])
+    )
 
 async def get_current_admin(current_user: UserResponse = Depends(get_current_user)):
     if current_user.role != "admin":
