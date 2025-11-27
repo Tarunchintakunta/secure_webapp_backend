@@ -23,9 +23,12 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
     new_user = await db["users"].insert_one(user_doc)
     created_user = await db["users"].find_one({"_id": new_user.inserted_id})
     
-    # Convert ObjectId to string for response
-    created_user["id"] = str(created_user["_id"])
-    return UserResponse(**created_user)
+    return UserResponse(
+        id=str(created_user["_id"]),
+        email=created_user["email"],
+        role=created_user["role"],
+        name=created_user["name"]
+    )
 
 async def login_user(response: Response, form_data, db=Depends(get_database)):
     user = await db["users"].find_one({"email": form_data.username}) # OAuth2PasswordRequestForm uses username
