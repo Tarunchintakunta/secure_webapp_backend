@@ -78,3 +78,59 @@ async def delete_product(id: str, db=Depends(get_database)):
     if delete_result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"message": "Product deleted"}
+
+async def search_products(
+    search: str = None,
+    category: str = None,
+    min_price: float = None,
+    max_price: float = None,
+    low_stock_only: bool = False,
+    db=Depends(get_database)
+):
+    """Search and filter products"""
+    query = {}
+    
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"description": {"$regex": search, "$options": "i"}}
+        ]
+    
+    if category:
+        query["category"] = category
+    
+    if min_price is not None or max_price is not None:
+        price_query = {}
+        if min_price is not None:
+            price_query["$gte"] = min_price
+        if max_price is not None:
+            price_query["$lte"] = max_price
+        query["price"] = price_query
+    
+    if low_stock_only:
+        query["$expr"] = {"$lte": ["$stock_quantity", "$low_stock_threshold"]}
+    
+    products = await db["products"].find(query).to_list(1000)
+    return [ProductResponse(
+        id=str(p["_id"]),
+        name=p["name"],
+        description=p.get("description"),
+        price=p["price"],
+        category=p["category"],
+        stock_quantity=p["stock_quantity"],
+        low_stock_threshold=p["low_stock_threshold"]
+    ) for p in products]
+
+async def get_categories(db=Depends(get_database)):
+    """Get all unique product categories"""
+    pipeline = [
+        {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    categories = await db["products"].aggregate(pipeline).to_list(100)
+    return {
+        "categories": [
+            {"name": cat["_id"], "count": cat["count"]}
+            for cat in categories if cat["_id"]
+        ]
+    }

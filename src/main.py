@@ -12,6 +12,7 @@ from src.routes.auth_routes import router as auth_router
 from src.routes.product_routes import router as product_router
 from src.routes.sale_routes import router as sale_router
 from src.routes.customer_routes import router as customer_router
+from src.routes.analytics_routes import router as analytics_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(lifespan=lifespan)
@@ -30,6 +31,7 @@ app.include_router(auth_router)
 app.include_router(product_router)
 app.include_router(sale_router)
 app.include_router(customer_router)
+app.include_router(analytics_router)
 
 @app.get("/")
 async def root():
