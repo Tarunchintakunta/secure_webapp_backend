@@ -37,20 +37,39 @@ async def create_sale(sale: SaleCreate, employee_id: str, db=Depends(get_databas
     
     new_sale = await db["sales"].insert_one(sale_doc)
     created_sale = await db["sales"].find_one({"_id": new_sale.inserted_id})
-    created_sale["id"] = str(created_sale["_id"])
-    return SaleResponse(**created_sale)
+    return SaleResponse(
+        id=str(created_sale["_id"]),
+        items=created_sale["items"],
+        total_amount=created_sale["total_amount"],
+        employee_id=created_sale["employee_id"],
+        customer_name=created_sale.get("customer_name"),
+        created_at=created_sale["created_at"],
+        status=created_sale["status"]
+    )
 
 async def get_sales(db=Depends(get_database)):
     sales = await db["sales"].find().sort("created_at", -1).to_list(1000)
-    for s in sales:
-        s["id"] = str(s["_id"])
-    return [SaleResponse(**s) for s in sales]
+    return [SaleResponse(
+        id=str(s["_id"]),
+        items=s["items"],
+        total_amount=s["total_amount"],
+        employee_id=s["employee_id"],
+        customer_name=s.get("customer_name"),
+        created_at=s["created_at"],
+        status=s["status"]
+    ) for s in sales]
 
 async def get_my_sales(employee_id: str, db=Depends(get_database)):
     sales = await db["sales"].find({"employee_id": employee_id}).sort("created_at", -1).to_list(1000)
-    for s in sales:
-        s["id"] = str(s["_id"])
-    return [SaleResponse(**s) for s in sales]
+    return [SaleResponse(
+        id=str(s["_id"]),
+        items=s["items"],
+        total_amount=s["total_amount"],
+        employee_id=s["employee_id"],
+        customer_name=s.get("customer_name"),
+        created_at=s["created_at"],
+        status=s["status"]
+    ) for s in sales]
 
 async def cancel_sale(id: str, employee_id: str, role: str, db=Depends(get_database)):
     if not ObjectId.is_valid(id):
