@@ -27,7 +27,7 @@ class SaleInDB(BaseModel):
         json_encoders = {ObjectId: str}
 
 class SaleResponse(SaleInDB):
-    id: str = Field(alias="_id")
+    id: str
 
     class Config:
         from_attributes = True

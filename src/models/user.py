@@ -35,7 +35,7 @@ class UserInDB(UserBase):
         json_encoders = {ObjectId: str}
 
 class UserResponse(UserBase):
-    id: str = Field(alias="_id")
+    id: str
     name: str
 
     class Config:
