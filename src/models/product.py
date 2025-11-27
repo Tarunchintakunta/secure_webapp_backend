@@ -30,7 +30,7 @@ class ProductInDB(ProductBase):
         json_encoders = {ObjectId: str}
 
 class ProductResponse(ProductBase):
-    id: str = Field(alias="_id")
+    id: str
 
     class Config:
         from_attributes = True
